@@ -116,7 +116,7 @@ module Junebug::Controllers
   end
 
   class Search
-    def post 
+    def get 
       @search_term = input.q
       @page_title = "Search Results for: #{@search_term}"
       @pages = Page.find(:all, :conditions => ["body LIKE ? OR title LIKE ?", "%#{@search_term}%", "%#{@search_term}%" ])

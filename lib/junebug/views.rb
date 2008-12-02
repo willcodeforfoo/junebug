@@ -131,7 +131,7 @@ module Junebug::Views
     _body do
       h1 "Search results"
 
-      form :action => R(Search), :method => 'post' do
+      form :action => R(Search), :method => 'get' do
         input :name => 'q', :type => 'text', :value=>@search_term, :accesskey => 's' 
         input :type => 'submit', :name => 'search', :value => 'Search',
           :style=>'margin: 0 0 5px 5px;'
@@ -358,7 +358,7 @@ module Junebug::Views
 
       span :id=>'search' do
         # text 'Search: '
-        form :action => R(Search), :method => 'post' do
+        form :action => R(Search), :method => 'get' do
           input :name => 'q', :type => 'text', :value=>(''), :accesskey => 's' 
           #input :type => 'submit', :name => 'search', :value => 'Search',
           #  :style=>'margin: 0 0 5px 5px;'
