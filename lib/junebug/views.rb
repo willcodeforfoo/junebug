@@ -304,8 +304,8 @@ module Junebug::Views
   def _markup txt
     return '' if txt.blank?
     titles = Junebug::Models::Page.find(:all, :select => 'title').collect { |p| p.title }
-    txt = txt.gsub(Junebug::Models::Page::PAGE_LINK) do
-      page = title = $1.strip
+    txt.gsub!(Junebug::Models::Page::PAGE_LINK) do
+      page = title = $1
       title = $2 unless $2.empty?
       page_url = page.gsub(/ /, '_')
       if titles.include?(page)
@@ -314,7 +314,33 @@ module Junebug::Views
         %Q{<span>#{title}<a href="#{self/R(Edit, page_url, 1)}">?</a></span>}
       end
     end
-    #text RedCloth.new(auto_link_urls(txt), [ ]).to_html
+
+    # Uniform newlines
+    txt.gsub!(/\r\n/, "\n")
+
+    # Templates
+    txt.gsub!(/\{\{(\w+)\n?([^{]+)?\}\}/m) do
+      template_name = $1.to_s.strip
+      variables = {}
+      
+      $2.to_s.split("\n").each do |line|
+        line.gsub(/^|(\w+) ?= ?(.+)$/) do
+          variables[$1] = $2 if $1
+        end
+      end
+      
+      template = Junebug::Models::Page.find(:first, :conditions => ['title = ?', "Template:#{template_name}"])
+      
+      if template
+        body = template.body
+        body.gsub(/\{\{(\w+)\}\}/) do
+          variables[$1]
+        end
+      else
+        "Template Not Found (#{template_name}): #{variables.inspect}"
+      end
+    end
+
     text RedCloth.new(txt, [ ]).to_html
   end
 

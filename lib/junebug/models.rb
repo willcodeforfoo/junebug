@@ -29,7 +29,7 @@ module Junebug::Models
     belongs_to :user, :class_name=>"Junebug::Models::User", :foreign_key=>'user_id' # Hack to prevent
     # camping error on initial load
     
-    PAGE_TITLE = '[\w0-9A-Za-z -]+' # We need the \w for other UTF chars
+    PAGE_TITLE = '[\w0-9A-Za-z\: -]+' # We need the \w for other UTF chars
     PAGE_SLUG = PAGE_TITLE.gsub(/ /, '_')
     DENY_UNDERSCORES =  /^([^_]+)$/
     PAGE_LINK = /\[\[(#{PAGE_TITLE})[|]?([^\]]*)\]\]/
