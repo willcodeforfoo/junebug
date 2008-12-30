@@ -1,4 +1,5 @@
 require 'junebug/ext/redcloth'
+require 'date'
 
 module Junebug::Views
   
@@ -28,14 +29,29 @@ module Junebug::Views
   def show
     _header (@version.version == @page.version ? :backlinks : :show)
     _body do
+
+      dated = @page.title.match(/(\d{4})(\d{2})(\d{2})/) ? Date.new($1.to_i, $2.to_i, $3.to_i) : nil
+      
+      if dated
+        table.date_navigation(:width => '100%') {
+          tr {
+            td(:align => 'left') { _markup("[[#{(dated - 1).strftime('%Y%m%d')}]]") }
+            td(:align => 'right') { _markup("[[#{(dated + 1).strftime('%Y%m%d')}]]") }
+          }
+        }      
+        br
+      end
+
       _button 'edit', R(Edit, @page.title_url, @version.version), {:style=>'float: right; margin: 0 0 5px 5px;', :accesskey => 'e'} if (@version.version == @page.version && (! @page.readonly || is_admin?))
-      h1 @page.title
+      
+      h1 { "#{@page.title} <span class=\"weekday\">#{dated ? dated.strftime('%A') : ''}</span>" }
+
       _markup @version.body
       _button 'edit', R(Edit, @page.title_url, @version.version), {:style=>'float: right; margin: 5px 0 0 5px;'} if (@version.version == @page.version && (! @page.readonly || is_admin?)) && (@version.body && @version.body.size > 200)
       br :clear=>'all'
     end
     _footer {
-      text "Page last edited by <b>#{@version.user.username}</b> on #{@page.updated_at.strftime('%B %d, %Y %I:%M %p')}"
+      text "Page last edited by <b>#{@version.user.username}</b> on #{@page.updated_at.strftime('%B %d, %Y %I:%M %p')}, #{@version.body.to_s.scan(/(\w|-)+/).size} words"
       text " (#{diff_link(@page, @version)}) " if @version.version > 1
       br
       text '<b>[readonly]</b> ' if @page.readonly
@@ -67,6 +83,8 @@ module Junebug::Views
           _markup @page.body
         }
       end
+
+      h1 @page_title
       div.formbox {
         form :method => 'post', :action => R(Edit, @page.title_url) do
           p { 
@@ -86,8 +104,10 @@ module Junebug::Views
           if @page.user_id == @state.user.id
             input :type => 'submit', :name=>'submit', :value=>'minor edit', :class=>'button', :style=>'float: right;', :accesskey => 'm'
           end
+          
           input :type => 'submit', :name=>'submit', :value=>'save', :class=>'button', :style=>'float: right;', :accesskey => 's'
           input :type => 'submit', :name=>'submit', :value=>'preview', :class=>'button', :style=>'float: right;', :accesskey => 'p'
+          
           if is_admin?
             opts = { :type => 'checkbox', :value=>'1', :name => 'post_readonly' }
             opts[:checked] = 1 if @page.readonly
@@ -140,12 +160,12 @@ module Junebug::Views
       ul {
         @pages.each { |p| li{ a p.title, :href => R(Show, p.title_url) } }
       }
-
+      
       if @pages.empty?
         p "No results found."
         p { a "Create '#{@search_term}'", :href => R(Edit, @search_term.gsub(/\s/,'_')) }
       end
-
+      
     end
     _footer { '' }
   end
